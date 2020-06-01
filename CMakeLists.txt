@@ -1,0 +1,27 @@
+cmake_minimum_required(VERSION 3.13)
+project(algorithms)
+
+set(CMAKE_CXX_STANDARD 17)
+
+FIND_PACKAGE(GTest QUIET)
+
+SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+INCLUDE(CommonSettings)
+
+INCLUDE_DIRECTORIES(algo)
+SET(TEST_SOURCES test/test.cpp)
+
+#test target
+if (GTEST_FOUND)
+    ENABLE_TESTING()
+    FIND_PACKAGE(Threads REQUIRED)
+    SET(TEST_TARGET algorithms_test)
+    ADD_EXECUTABLE(${TEST_TARGET} ${TEST_SOURCES})
+    TARGET_INCLUDE_DIRECTORIES(${TEST_TARGET} PUBLIC ${GTEST_INCLUDE_DIRS})
+    TARGET_LINK_LIBRARIES(${TEST_TARGET} ${GTEST_LIBRARIES} pthread)
+    GTEST_ADD_TESTS(TARGET ${TEST_TARGET})
+
+    INCLUDE(Lcov)
+else (GTEST_FOUND)
+    MESSAGE("Gtest library was not found. Install gtest.")
+endif (GTEST_FOUND)

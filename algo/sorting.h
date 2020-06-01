@@ -40,6 +40,9 @@ void RadixSort(T* nums, const size_t n) {
             }
          }
          else { // sort signed integers
+            // start from lowest negative, i.e. 0b1000'0000
+            // increment until it overflows, starts from 0 and goes through all positives
+            // up to i.e. 0b0111'1111
             for (size_t i = (mask >> 1U) + 1U; i != (mask >> 1U);) {
                auto temp = count[i++];
                i &= mask;

@@ -8,8 +8,8 @@ FIND_PACKAGE(GTest QUIET)
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 INCLUDE(CommonSettings)
 
-INCLUDE_DIRECTORIES(algo)
-SET(TEST_SOURCES test/test.cpp)
+INCLUDE_DIRECTORIES(algo struct test)
+FILE(GLOB TEST_SOURCES test/*.cpp)
 
 #test target
 if (GTEST_FOUND)

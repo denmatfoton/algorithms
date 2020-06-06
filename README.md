@@ -6,5 +6,17 @@ Here I will place some efficient algorithms and data structures implemented from
 
 Tests are implemented using [googletest library](https://github.com/google/googletest). To run tests install gtest first.
 
-TODO: Add benchmarks and additional description.
+## Already available
 
+### Algorithms
+
+- Radix sort
+
+### Structures
+
+- Segment tree
+- Fenwick tree
+
+## Detailed description
+
+For detailed description see corresponding md files in _algo_ and _struct_ folders.

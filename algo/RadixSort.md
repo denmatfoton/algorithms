@@ -58,7 +58,7 @@ In some special cases _counting sort_ or _bucket sort_ may outperform `RadixSort
 
 If array element is a complex structure which has a basic numeric field like `int`, and
 it is required to sort this array by the numbers in this field, it is possible to make
-slight changes in `RadixSort` to perform this task.
+slight changes in `RadixSort` to perform this task. See example [here](../test/segment_tree_test.cpp).
 
 If array contains strings of small fixed length, it is also possible to modify `RadixSort`
 to work well on this task.

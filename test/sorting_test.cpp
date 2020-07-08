@@ -2,11 +2,12 @@
  * @file sorting_test.cpp
  * @brief Tests for radix sort.
  */
-#include <bits/stdc++.h>
+#include <random>
+#include <fstream>
+#include <chrono>
 #include <gtest/gtest.h>
 
 #include "sorting.h"
-#include "test_utils.h"
 
 using namespace std;
 
@@ -16,7 +17,7 @@ void RadixBenchmark(Distribution dis, Generator &gen, const char* type_name, ofs
    cout << "\nComparing speed of RadixSort with std::sort\n";
    cout << "Array element type: " << type_name << endl;
    plot_data << "RadixSort vs std::sort (" << type_name << ")" << endl;
-   vector<double> radix_plot, std_plot;
+   vector<int64_t> radix_plot, std_plot;
 
    constexpr size_t sort_start = 100, sort_end = 10'000'000;
    for (size_t sort_size = sort_start; sort_size <= sort_end; sort_size *= 10) {
@@ -26,27 +27,25 @@ void RadixBenchmark(Distribution dis, Generator &gen, const char* type_name, ofs
       for (auto & i : nums) i = dis(gen);
       auto nums_copy = nums;
 
-      struct timespec start = {0, 0}, end = {0, 0};
-      auto diff = end;
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+      auto start = chrono::high_resolution_clock::now();
       RadixSort(nums.data(), nums.size(), reverse);
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
-      auto radix_time = timespec_subtract(end, start, diff);
-      cout << "Radix sort time elapsed: " << diff.tv_sec << "s " << diff.tv_nsec << "ns\n";
+      auto end = chrono::high_resolution_clock::now();
+      auto radix_time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+      cout << "Radix sort time elapsed: " << radix_time << "ns\n";
 
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+      start = chrono::high_resolution_clock::now();
       if (reverse) {
          std::sort(nums_copy.begin(), nums_copy.end(), std::greater<T>());
       }
       else {
          std::sort(nums_copy.begin(), nums_copy.end());
       }
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
-      auto std_time = timespec_subtract(end, start, diff);
-      cout << "Standard sort time elapsed: " << diff.tv_sec << "s " << diff.tv_nsec << "ns\n";
+      end = chrono::high_resolution_clock::now();
+      auto std_time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+      cout << "Standard sort time elapsed: " << std_time << "ns\n";
 
       // speed is reverse proportional to time taken
-      cout << "radix_speed / std_speed = " << std_time / radix_time << endl;
+      cout << "radix_speed / std_speed = " << (double)std_time / radix_time << endl;
       radix_plot.push_back(radix_time);
       std_plot.push_back(std_time);
 

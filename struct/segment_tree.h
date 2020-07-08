@@ -67,7 +67,7 @@ public:
 #endif
 
 private:
-#if 1 // 2 equivalent variants of getting next and previous array index.
+#if 0 // 2 equivalent variants of getting next and previous array index.
    inline static size_t prev(size_t x) {
       return x - (x & (-x));
    }

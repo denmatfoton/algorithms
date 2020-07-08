@@ -2,7 +2,7 @@
  * @file segment_tree_test.cpp
  * @brief Tests for segment and fenwick trees.
  */
-#include <bits/stdc++.h>
+#include <algorithm>
 #include <gtest/gtest.h>
 
 #include "segment_tree.h"
@@ -58,7 +58,7 @@ int count_ranges(vector<pair<int64_t, size_t>>& arr, int limit){
    FenwickTree<int> ft(arr.size());
    int result = 0;
    for (auto i = arr.size(), j = i; i--; ) {
-      for (; j != 0 and arr[i].first - arr[j - 1].first <= limit; --j) {
+      for (; j != 0 && arr[i].first - arr[j - 1].first <= limit; --j) {
          ft.Update(arr[j - 1].second, 1);
       }
       result += ft.Query(0, arr[i].second - 1UL);

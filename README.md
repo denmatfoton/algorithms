@@ -16,6 +16,11 @@ Tests are implemented using [googletest library](https://github.com/google/googl
 
 - Segment tree
 - Fenwick tree
+- Red-black tree family:
+   - Set/Multiset
+   - Map/Multimap
+   - Set/Multiset with dynamic ordering capabilities
+   - Map with dynamic ordering capabilities
 
 ## Detailed description
 

@@ -5,6 +5,9 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <queue>
+
 
 /**
  * Radix sort works for different types of integers.
@@ -16,6 +19,7 @@
  * @param n Size of the array.
  * @param reverse If true sorts in descending order.
  * @note It is efficient on big arrays. On small arrays (n < 100) std::sort might be faster.
+ * @note It is a stable sorting algorithm.
  */
 template <size_t radix_bits = 8, class T = int>
 void RadixSort(T* nums, const size_t n, bool reverse = false) {
@@ -86,6 +90,7 @@ void RadixSort(T* nums, const size_t n, bool reverse = false) {
  * @param n Size of the array.
  * @param reverse If true sorts in descending order.
  * @note It is efficient on big arrays. On small arrays (n < 100) std::sort might be faster.
+ * @note It is a stable sorting algorithm.
  */
 template <size_t radix_bits = 8, class T>
 void FloatRadixSort(T* int_cast_nums, const size_t n, bool reverse = false) {
@@ -153,4 +158,83 @@ void RadixSort<8, float>(float* nums, const size_t n, bool reverse) {
 template <>
 void RadixSort<8, double>(double* nums, const size_t n, bool reverse) {
    FloatRadixSort(reinterpret_cast<uint64_t*>(nums), n, reverse);
+}
+
+
+/**
+ * Sorting of any type of comparable date using Cartesian Tree.
+ *
+ * Unlike Heap, Cartesian sort makes use of the fact that the data is partially sorted.
+ * This gives a linear complexity when the data is partially sorted.
+ * O(n * log(n)) in worst case.
+ * Uses linear amount of additional memory.
+ *
+ * @tparam T Array element type.
+ * @tparam _Cmp type of compatison operator.
+ * @param arr Pointer to the array to be sorted.
+ * @param n Size of the array.
+ * @param cmp compatison operator for type T.
+ * If cmp compares less <, array will be sorted in ascending order.
+ * @note It is NOT a stable sorting algorithm.
+ */
+template<typename T, typename _Cmp = std::less<T>>
+std::vector<T> CartesianSort(const T* arr, size_t n, _Cmp cmp = _Cmp()) { 
+    // Arrays to hold the index of parent, left-child, 
+    // right-child of each number in the input array 
+    std::vector<int> parent(n, -1), left_child(n, -1), right_child(n, -1);
+  
+    // 'root' and 'last' stores the index of the root and the 
+    // last processed of the Cartesian Tree. 
+    // Initially we take root of the Cartesian Tree as the 
+    // first element of the input array. This can change 
+    // according to the algorithm 
+    int root = 0, prev;
+  
+    // Starting from the second element of the input array 
+    // to the last on scan across the elements, adding them 
+    // one at a time. 
+    for (int i = 0; ++i < n;) { 
+        prev = i - 1;
+        // Scan upward from the node's parent up to 
+        // the root of the tree until a node is found 
+        // whose value is greater than the current one 
+        // This is the same as Step 2 mentioned in the 
+        // algorithm 
+        while (!cmp(arr[prev], arr[i]) && prev != root) 
+            prev = parent[prev]; 
+  
+        // arr[i] is the largest element yet; make it 
+        // new root 
+        if (!cmp(arr[prev], arr[i])) { 
+            left_child[i] = root; 
+            root = parent[root] = i; 
+        } 
+        // Just insert it 
+        else if (right_child[prev] == -1) { 
+            right_child[prev] = i; 
+            parent[i] = prev; 
+            left_child[i] = -1; 
+        } 
+        // Reconfigure links 
+        else { 
+            parent[right_child[prev]] = i;
+            left_child[i] = right_child[prev]; 
+            right_child[prev] = i; 
+            parent[i] = prev; 
+        }
+    }
+
+    vector<T> out(n);
+    auto cmp_pq = [arr, cmp] (int i, int j) { return !cmp(arr[i], arr[j]); };
+    priority_queue<int, vector<int>, decltype(cmp_pq)> pq(cmp_pq); 
+    pq.push(root);
+  
+    size_t i = 0;
+    while (!pq.empty()) {
+        auto cur = pq.top(); pq.pop();
+        out[i++] = arr[cur];
+        if (left_child[cur] != -1) pq.push(left_child[cur]); 
+        if (right_child[cur] != -1) pq.push(right_child[cur]); 
+    }
+    return out;
 }

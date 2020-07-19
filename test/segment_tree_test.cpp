@@ -72,7 +72,7 @@ int count_ranges(vector<pair<int64_t, size_t>>& arr, int limit){
  * [lower, upper] inclusive. Range sum S(i, j) is defined as the sum of the
  * elements in nums between indices i and j (i ≤ j), inclusive.
  *
- * @note This problem is from leetcode.com
+ * @note This is a problem #327 from http://leetcode.com
  */
 int countRangeSum(vector<int>& nums, int lower, int upper) {
    int64_t sum = 0;

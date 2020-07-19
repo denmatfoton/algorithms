@@ -10,7 +10,12 @@ Tests are implemented using [googletest library](https://github.com/google/googl
 
 ### Algorithms
 
-- Radix sort
+- Sorting
+   - Radix sort
+   - Cartesian sort
+- Strings
+   - Suffix array with induced sortig
+   - String search
 
 ### Structures
 
@@ -21,6 +26,7 @@ Tests are implemented using [googletest library](https://github.com/google/googl
    - Map/Multimap
    - Set/Multiset with dynamic ordering capabilities
    - Map with dynamic ordering capabilities
+- Big integer
 
 ## Detailed description
 

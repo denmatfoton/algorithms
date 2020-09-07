@@ -46,14 +46,14 @@ void SaRadixSort(T* nums, const size_t n, const size_t max_shift) {
    constexpr size_t mask = (1U << radix_bits) - 1U;
    size_t count[1 << radix_bits];
    auto aux_unique = std::make_unique<T[]>(n);
-   auto aux = aux_unique.get();
+   auto *aux = aux_unique.get();
 
    /* LSD Radix Sort */
    for (size_t shift = 0; shift < max_shift; shift += radix_bits) {
       memset(count, 0, sizeof(count));
 
       for (size_t i = 0; i < n; i++)    // Counting sort
-         count[(nums[i].second >> shift) & mask]++;
+         ++count[(nums[i].second >> shift) & mask];
 
       // Calculate buckets positions (cumulative sum)
       for (size_t i = 0; i < mask;) {
@@ -128,8 +128,7 @@ void InducedSorting(
       std::vector<size_t> starts_copy = starts;
       for (auto i = lms.rbegin(); i != lms.rend(); i++) {
          auto& end = starts_copy[text[*i] - min_item + 1];
-         end -= 1;
-         sa[end] = *i;
+         sa[--end] = *i;
       }
    }
 
@@ -139,15 +138,13 @@ void InducedSorting(
       // Special case: n-1. We don't use a sentinel.
       {
          auto& start = starts_copy[text[n - 1] - min_item];
-         sa[start] = n - 1;
-         start += 1;
+         sa[start++] = n - 1;
       }
 
-      for (auto i = 0; i < n; i++) {
+      for (size_t i = 0; i < n; i++) {
          if (sa[i] != n && sa[i] > 0 && !stype[sa[i] - 1]) {
             auto& start = starts_copy[text[sa[i] - 1] - min_item];
-            sa[start] = sa[i] - 1;
-            start += 1;
+            sa[start++] = sa[i] - 1;
          }
       }
    }
@@ -158,8 +155,7 @@ void InducedSorting(
       for (size_t i = n - 1; i < n; i--) {
          if (sa[i] != n && sa[i] > 0 && stype[sa[i] - 1]) {
             auto& end = starts_copy[text[sa[i] - 1] - min_item + 1];
-            end -= 1;
-            sa[end] = sa[i] - 1;
+            sa[--end] = sa[i] - 1;
          }
       }
    }
@@ -198,16 +194,10 @@ template<typename T>
 static std::vector<bool> ComputeStype(const T* text, size_t n) {
    std::vector<bool> stype(n, false);
    for (size_t i = n - 2; i < n; i--) {
-      T a = text[i];
-      T b = text[i + 1];
-      if (a < b) {
-         stype[i] = true;
-      }
-      else if (a == b) {
-         stype[i] = stype[i + 1];
-      }
+      auto a = text[i];
+      auto b = text[i + 1];
+      stype[i] = (a < b) || ((a == b) && stype[i + 1]);
    }
-
    return stype;
 }
 
@@ -222,8 +212,8 @@ std::vector<size_t> ComputeSaIS(const T* text, size_t n) {
    if (n == 0) return sa;
 
    // Compute alphabet range
-   T min_item = text[0];
-   T max_item = text[0];
+   auto min_item = text[0];
+   auto max_item = text[0];
    for (size_t i = 1; i < n; i++) {
       min_item = std::min(min_item, text[i]);
       max_item = std::max(max_item, text[i]);
@@ -284,7 +274,7 @@ std::vector<size_t> ComputeSaIS(const T* text, size_t n) {
          auto last = lms_blocks[i - 1];
          auto curr = lms_blocks[i];
          if (!IsEqualLms(text, n, last, curr, stype)) {
-            lms_numbering += 1;
+            ++lms_numbering;
          }
          sa[lms_blocks[i]] = lms_numbering;
       }

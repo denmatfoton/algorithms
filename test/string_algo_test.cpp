@@ -3,7 +3,6 @@
  * @brief Tests for radix sort.
  */
 #include <random>
-#include <fstream>
 #include <chrono>
 #include <gtest/gtest.h>
 

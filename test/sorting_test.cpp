@@ -13,13 +13,18 @@ using namespace std;
 
 
 template <class T, class Distribution, class Generator>
-void RadixBenchmark(Distribution dis, Generator &gen, const char* type_name, ofstream &plot_data, bool reverse = false) {
+void RadixBenchmark(Distribution dis, Generator &gen, const char* type_name, ofstream &plot_data, bool reverse = false, bool pre_alloc = false) {
    cout << "\nComparing speed of RadixSort with std::sort\n";
    cout << "Array element type: " << type_name << endl;
    plot_data << "RadixSort vs std::sort (" << type_name << ")" << endl;
    vector<int64_t> radix_plot, std_plot;
+   T* aux_mem = nullptr;
 
    constexpr size_t sort_start = 100, sort_end = 10'000'000;
+   if (pre_alloc) {
+       aux_mem = reinterpret_cast<T*>(malloc(sizeof(T) * sort_end));
+       for (int i = 0; i < sort_end; ++i) aux_mem[i] = T(0xDEAF); // force page allocation
+   }
    for (size_t sort_size = sort_start; sort_size <= sort_end; sort_size *= 10) {
       cout << "Array size: " << sort_size << endl;
       vector<T> nums(sort_size);
@@ -28,10 +33,10 @@ void RadixBenchmark(Distribution dis, Generator &gen, const char* type_name, ofs
       auto nums_copy = nums;
 
       auto start = chrono::high_resolution_clock::now();
-      RadixSort(nums.data(), nums.size(), reverse);
+      RadixSort(nums.data(), nums.size(), reverse, aux_mem);
       auto end = chrono::high_resolution_clock::now();
-      auto radix_time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
-      cout << "Radix sort time elapsed: " << radix_time << "ns\n";
+      auto radix_time = chrono::duration_cast<chrono::microseconds>(end - start).count();
+      cout << "Radix sort time elapsed: " << radix_time << "us\n";
 
       start = chrono::high_resolution_clock::now();
       if (reverse) {
@@ -41,11 +46,24 @@ void RadixBenchmark(Distribution dis, Generator &gen, const char* type_name, ofs
          std::sort(nums_copy.begin(), nums_copy.end());
       }
       end = chrono::high_resolution_clock::now();
-      auto std_time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
-      cout << "Standard sort time elapsed: " << std_time << "ns\n";
+      auto std_time = chrono::duration_cast<chrono::microseconds>(end - start).count();
+      cout << "Standard sort time elapsed: " << std_time << "us\n";
+
+      start = chrono::high_resolution_clock::now();
+      if (reverse) {
+         std::sort(nums_copy.begin(), nums_copy.end(), std::greater<T>());
+      }
+      else {
+         std::sort(nums_copy.begin(), nums_copy.end());
+      }
+      end = chrono::high_resolution_clock::now();
+      auto std_sorted_time = chrono::duration_cast<chrono::microseconds>(end - start).count();
+      cout << "Standard sort of already sorted time elapsed: " << std_sorted_time << "us\n";
 
       // speed is reverse proportional to time taken
-      cout << "radix_speed / std_speed = " << (double)std_time / radix_time << endl;
+      double rt = radix_time + 0.0001; // prevent 0 division
+      cout << "radix_speed / std_speed = " << std_time / rt << endl;
+      cout << "radix_speed / std_sorted_speed = " << std_sorted_time / rt << endl;
       radix_plot.push_back(radix_time);
       std_plot.push_back(std_time);
 
@@ -53,6 +71,7 @@ void RadixBenchmark(Distribution dis, Generator &gen, const char* type_name, ofs
 
       cout << endl;
    }
+   if (pre_alloc) free(aux_mem);
 
    plot_data << "RadixSort" << endl;
    for (size_t sort_size = sort_start; sort_size <= sort_end; sort_size *= 10)
@@ -84,4 +103,17 @@ TEST(Sorting, Radix) {
    RadixBenchmark<float>(uniform_real_distribution<float>(-1.f, 1.f), gen, "float", plot_data, true);
    RadixBenchmark<double>(uniform_real_distribution<double>(-1e100, 1e100), gen, "double", plot_data, true);
    RadixBenchmark<double>(uniform_real_distribution<double>(-1., 1.), gen, "double", plot_data);
+   
+   cout << "\n\n\n*************************************************************************" << endl;
+   cout << "******************Same tests with preallocated memory********************" << endl;
+   cout << "*************************************************************************\n" << endl;
+
+   RadixBenchmark<int>(uniform_int_distribution<int>(INT_MIN, INT_MAX), gen, "int", plot_data, false, true);
+   RadixBenchmark<uint32_t>(uniform_int_distribution<uint32_t>(0U, UINT_MAX), gen, "uint32_t", plot_data, false, true);
+   RadixBenchmark<int64_t>(uniform_int_distribution<int64_t>(INT64_MIN, INT64_MAX), gen, "int64_t", plot_data, true, true);
+   RadixBenchmark<uint64_t>(uniform_int_distribution<uint64_t>(0UL, UINT64_MAX), gen, "uint64_t", plot_data, false, true);
+   RadixBenchmark<float>(uniform_real_distribution<float>(-1e30f, 1e30f), gen, "float", plot_data, false, true);
+   RadixBenchmark<float>(uniform_real_distribution<float>(-1.f, 1.f), gen, "float", plot_data, true, true);
+   RadixBenchmark<double>(uniform_real_distribution<double>(-1e100, 1e100), gen, "double", plot_data, true, true);
+   RadixBenchmark<double>(uniform_real_distribution<double>(-1., 1.), gen, "double", plot_data, false, true);
 }

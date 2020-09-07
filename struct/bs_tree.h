@@ -624,7 +624,7 @@ public:
 
 
 /**
- * @brief Map based on a red-black tree.
+ * @brief Dynamic ordering map based on a red-black tree.
  */
 template <class _K, class _V, class _Cmp = std::less<_K>>
 class DynOrderMap : public RBTreeDynOrder<_K, _Cmp> {

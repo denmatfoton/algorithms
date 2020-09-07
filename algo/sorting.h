@@ -22,12 +22,12 @@
  * @note It is a stable sorting algorithm.
  */
 template <size_t radix_bits = 8, class T = int>
-void RadixSort(T* nums, const size_t n, bool reverse = false) {
+void RadixSort(T* nums, const size_t n, bool reverse = false, T* aux = nullptr) {
    static_assert((sizeof(T) * 8) % (radix_bits * 2) == 0); // size should be divisible by radix * 2
    constexpr size_t mask = (1U << radix_bits) - 1U;
    size_t count[1U << radix_bits];
-   auto aux_unique = std::make_unique<T[]>(n);
-   auto aux = aux_unique.get();
+   bool mem_alloc = aux == nullptr;
+   if (mem_alloc) aux = reinterpret_cast<T*>(malloc(sizeof(T) * n));
 
    /* LSD Radix Sort */
    for (size_t shift = 0; shift < sizeof(T) * 8; shift += radix_bits) {
@@ -78,6 +78,8 @@ void RadixSort(T* nums, const size_t n, bool reverse = false) {
 
       std::swap(aux, nums);
    }
+
+   if (mem_alloc) free(aux);
 }
 
 /**
@@ -93,11 +95,11 @@ void RadixSort(T* nums, const size_t n, bool reverse = false) {
  * @note It is a stable sorting algorithm.
  */
 template <size_t radix_bits = 8, class T>
-void FloatRadixSort(T* int_cast_nums, const size_t n, bool reverse = false) {
+void FloatRadixSort(T* int_cast_nums, const size_t n, bool reverse = false, T* aux = nullptr) {
    constexpr size_t mask = (1U << radix_bits) - 1U;
    size_t count[1U << radix_bits];
-   auto aux_unique = std::make_unique<T[]>(n);
-   auto aux = aux_unique.get();
+   bool mem_alloc = aux == nullptr;
+   if (mem_alloc) aux = reinterpret_cast<T*>(malloc(sizeof(T) * n));
 
    /* LSD Radix Sort */
    for (size_t shift = 0; shift < sizeof(T) * 8; shift += radix_bits) {
@@ -148,16 +150,18 @@ void FloatRadixSort(T* int_cast_nums, const size_t n, bool reverse = false) {
 
       std::swap(aux, int_cast_nums);
    }
+
+   if (mem_alloc) free(aux);
 }
 
 template <>
-void RadixSort<8, float>(float* nums, const size_t n, bool reverse) {
-   FloatRadixSort(reinterpret_cast<uint32_t*>(nums), n, reverse);
+void RadixSort<8, float>(float* nums, const size_t n, bool reverse, float* aux) {
+   FloatRadixSort(reinterpret_cast<uint32_t*>(nums), n, reverse, reinterpret_cast<uint32_t*>(aux));
 }
 
 template <>
-void RadixSort<8, double>(double* nums, const size_t n, bool reverse) {
-   FloatRadixSort(reinterpret_cast<uint64_t*>(nums), n, reverse);
+void RadixSort<8, double>(double* nums, const size_t n, bool reverse, double* aux) {
+   FloatRadixSort(reinterpret_cast<uint64_t*>(nums), n, reverse, reinterpret_cast<uint64_t*>(aux));
 }
 
 

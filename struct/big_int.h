@@ -1,8 +1,13 @@
+/**
+ * @file big_int.h
+ * @brief Big integer data structure.
+ */
 #pragma once
 #include <iostream>
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <type_traits>
 #if defined(_MSC_VER)
      /* Microsoft C/C++-compatible compiler */
      #include <intrin.h>
@@ -15,7 +20,7 @@
 #endif
 
 
-#if 0
+#if 1
 template <typename T = int>
 class BigInt {
     void Trim() {
@@ -122,7 +127,7 @@ class BigInt {
     int sig = 0;
     static constexpr T base = T(1e9);
 public:
-    BigInt() {}
+    BigInt() : val(1) { }
 
     BigInt(const char* s) {
         if (s[0] == '-') {
@@ -169,6 +174,19 @@ public:
         for (i = val.size() - 1; i--; s += 9)
             snprintf(s, 10, "%09d", val[i]);
         return out;
+    }
+
+    template <typename IntT>
+    IntT ToInt() const {
+        IntT res = 0;
+        for (auto v : val) {
+            res *= base;
+            res += v;
+        }
+        if constexpr (std::is_signed(res)) {
+            if (sig) res = -res;
+        }
+        return res;
     }
 
     friend std::ostream& operator << (std::ostream& out, const BigInt& a) {
@@ -289,18 +307,63 @@ public:
     }
 
 
-    size_t DigCount() {
+    size_t DigCount() const {
         size_t cnt = (val.size() - 1) * 9;
         for (auto t = val.back(); t; t /= 10, ++cnt);
         return cnt;
     }
 
-    size_t DigSum() {
+    size_t DigSum() const {
         size_t sum = 0;
         for (auto v : val) {
             for (; v; v /= 10) sum += v % 10;
         }
         return sum;
+    }
+
+    size_t DigSum(int num) const {
+        size_t sum = 0;
+        size_t i = val.size() - 1;
+        for (auto v = val[i]; v; v /= 10, --num) sum += v % 10;
+        if (num < 0) {
+            for (auto v = val[i]; num++; v /= 10) sum -= v % 10;
+            return sum;
+        }
+        while (i-- && num > 0) {
+            for (auto v = val[i]; v; v /= 10) sum += v % 10;
+            num -= 9;
+            if (num < 0) {
+                for (auto v = val[i]; num++; v /= 10) sum -= v % 10;
+                break;
+            }
+        }
+        return sum;
+    }
+
+    void Reverse() {
+        reverse(val.begin(), val.end());
+        int r = 0, d = 1;
+        for (int t = val[0]; t; t /= 10) {
+            r *= 10;
+            d *= 10;
+            r += t % 10;
+        }
+        val[0] = r;
+        int rd = base / d;
+        for (int i = 1; i < val.size(); ++i) {
+            r = 0;
+            for (int t = val[i], f = 0; ++f < 10; t /= 10) {
+                r *= 10;
+                r += t % 10;
+            }
+            val[i] = r / rd;
+            val[i - 1] += (r % rd) * d;
+        }
+    }
+
+    void Swap(BigInt& b) {
+        swap(val, b.val);
+        swap(sig, b.sig);
     }
 
 
@@ -649,7 +712,7 @@ class BigInt {
     static constexpr size_t T_bits_num = sizeof(T) * 8;
     static constexpr T base = T(1 << base_bits_num);
 public:
-    BigInt() {}
+    BigInt() : val(1) {}
 
     BigInt(const char* s) {
         if (s[0] == '-') {
